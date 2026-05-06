@@ -101,14 +101,6 @@ function getData() {
     }
 
     registrations.push(reg);
-
-      industriesVal.split(',').forEach(function(ind) {
-        var trimmed = ind.trim();
-        if (trimmed) {
-          industryCounter[trimmed] = (industryCounter[trimmed] || 0) + 1;
-        }
-      });
-    }
   });
 
   // ── Summary counts ────────────────────────────────────────────────────────
@@ -143,12 +135,4 @@ function buildResponse(data) {
   return ContentService
     .createTextOutput(JSON.stringify(data))
     .setMimeType(ContentService.MimeType.JSON);
-}
-
-// ── Response helper ───────────────────────────────────────────────────────────
-function buildResponse(data, statusCode) {
-  var json = ContentService
-    .createTextOutput(JSON.stringify(data))
-    .setMimeType(ContentService.MimeType.JSON);
-  return json;
 }
