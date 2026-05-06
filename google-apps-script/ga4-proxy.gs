@@ -15,11 +15,23 @@
  */
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-var GA4_PROPERTY_ID = 'YOUR_GA4_PROPERTY_ID'; // e.g. '123456789' (numbers only)
+var GA4_PROPERTY_ID = '153293282';
 
-// Date range — adjust once the event has started / ended
-var DATE_START = '2026-06-08';
-var DATE_END   = '2026-06-12';
+// Only count traffic to this page — filters out all other pages on meet-eric.com
+var PAGE_PATH = '/freelance-launch';
+
+// Date range — shows traffic from 30 days ago through today;
+// update to '2026-06-08' / '2026-06-12' once the event is live
+var DATE_START = '30daysAgo';
+var DATE_END   = 'today';
+
+// Reusable page filter
+var PAGE_FILTER = {
+  filter: {
+    fieldName: 'pagePath',
+    stringFilter: { value: PAGE_PATH, matchType: 'EXACT' }
+  }
+};
 
 // ── doGet ─────────────────────────────────────────────────────────────────────
 function doGet(e) {
@@ -50,6 +62,7 @@ function getGA4Data() {
       { name: 'bounceRate' },
       { name: 'sessions' },
     ],
+    dimensionFilter: PAGE_FILTER,
   };
 
   var summaryReport = AnalyticsData.Properties.runReport(summaryRequest, propertyName);
@@ -66,6 +79,7 @@ function getGA4Data() {
     dimensions: [{ name: 'date' }],
     metrics:    [{ name: 'sessions' }],
     orderBys:   [{ dimension: { dimensionName: 'date' }, desc: false }],
+    dimensionFilter: PAGE_FILTER,
   };
 
   var byDayReport = AnalyticsData.Properties.runReport(byDayRequest, propertyName);
@@ -96,11 +110,18 @@ function getGA4Data() {
     dimensions: [{ name: 'eventName' }, { name: 'customEvent:video_title' }],
     metrics:    [{ name: 'eventCount' }],
     dimensionFilter: {
-      orGroup: {
+      andGroup: {
         expressions: [
-          { filter: { fieldName: 'eventName', stringFilter: { value: 'video_start',    matchType: 'EXACT' } } },
-          { filter: { fieldName: 'eventName', stringFilter: { value: 'video_progress', matchType: 'EXACT' } } },
-          { filter: { fieldName: 'eventName', stringFilter: { value: 'video_complete', matchType: 'EXACT' } } },
+          PAGE_FILTER,
+          {
+            orGroup: {
+              expressions: [
+                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_start',    matchType: 'EXACT' } } },
+                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_progress', matchType: 'EXACT' } } },
+                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_complete', matchType: 'EXACT' } } },
+              ]
+            }
+          }
         ]
       }
     },
