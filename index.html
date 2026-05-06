@@ -6,370 +6,269 @@
 <title>ERIC — Freelance Week Dashboard</title>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 <style>
-  /* ── Reset & Base ───────────────────────────────────────── */
+  /* ── Reset ── */
   * { box-sizing: border-box; margin: 0; padding: 0; }
+
   body {
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: #080d14;
-    color: #e2e8f0;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    background: #f5f5f7;
+    color: #1a1a2e;
     min-height: 100vh;
   }
 
-  /* ── Header ─────────────────────────────────────────────── */
+  /* ── Header ── */
   header {
-    background: linear-gradient(135deg, #0f172a 0%, #1a0a2e 60%, #1e0a1a 100%);
-    border-bottom: 1px solid rgba(248,120,6,0.2);
-    padding: 22px 40px;
+    background: #ffffff;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+    padding: 20px 40px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.05);
   }
-  .brand { display: flex; align-items: center; gap: 16px; }
+  .brand { display: flex; align-items: center; gap: 14px; }
   .logo {
-    width: 52px; height: 52px; border-radius: 12px;
-    background: linear-gradient(135deg, #f87806, #e91e8c);
+    width: 48px; height: 48px; border-radius: 10px;
+    background: linear-gradient(135deg, #FF6B35 0%, #E91E63 50%, #9C27B0 100%);
     display: flex; align-items: center; justify-content: center;
-    font-size: 16px; font-weight: 900; color: white; letter-spacing: -1px;
-    box-shadow: 0 0 20px rgba(248,120,6,0.4);
+    font-size: 14px; font-weight: 900; color: white; letter-spacing: -0.5px;
   }
-  .brand-text h1 { font-size: 20px; font-weight: 800; color: white; letter-spacing: -0.3px; }
-  .brand-text p  { font-size: 12px; color: rgba(255,255,255,0.45); margin-top: 2px; }
-  .header-right  { display: flex; align-items: center; gap: 16px; }
-  .status-pill {
+  .brand-text h1 {
+    font-size: 18px; font-weight: 700; color: #1a1a2e;
+  }
+  .brand-text p { font-size: 12px; color: #888; margin-top: 2px; }
+  .header-right { display: flex; align-items: center; gap: 12px; }
+  .live-badge {
     display: flex; align-items: center; gap: 6px;
-    background: rgba(6,214,160,0.12); border: 1px solid rgba(6,214,160,0.25);
-    border-radius: 20px; padding: 6px 14px; font-size: 12px; font-weight: 600; color: #06d6a0;
+    background: rgba(76,175,80,0.1); border: 1px solid rgba(76,175,80,0.3);
+    border-radius: 20px; padding: 5px 12px; font-size: 11px; font-weight: 700;
+    color: #4CAF50; text-transform: uppercase; letter-spacing: 0.4px;
   }
-  .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #06d6a0; animation: pulse-dot 2s infinite; }
-  @keyframes pulse-dot { 0%,100%{opacity:1} 50%{opacity:0.3} }
-  .date-badge {
-    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 8px; padding: 8px 16px; font-size: 12px; color: rgba(255,255,255,0.5);
-    text-align: right; line-height: 1.5;
-  }
-  .date-badge strong { color: rgba(255,255,255,0.8); display: block; }
-
-  /* ── Status bar ─────────────────────────────────────────── */
-  .status-bar {
-    background: rgba(255,255,255,0.03); border-bottom: 1px solid rgba(255,255,255,0.06);
-    padding: 8px 40px; display: flex; align-items: center; gap: 12px;
-    font-size: 11px; color: rgba(255,255,255,0.35);
-  }
-  .status-bar span { display: flex; align-items: center; gap: 5px; }
-  #last-updated-text { color: rgba(255,255,255,0.55); }
-  #data-source-status { margin-left: auto; }
-  .src-ok   { color: #06d6a0; }
-  .src-demo { color: #f87806; }
-  .src-err  { color: #f72585; }
+  .live-dot { width: 6px; height: 6px; border-radius: 50%; background: #4CAF50; animation: pulse 2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
   .refresh-btn {
-    background: rgba(248,120,6,0.15); border: 1px solid rgba(248,120,6,0.3);
-    color: #f87806; border-radius: 6px; padding: 4px 12px; font-size: 11px;
-    font-weight: 700; cursor: pointer; transition: all 0.15s;
+    background: rgba(255,107,53,0.08); border: 1px solid rgba(255,107,53,0.25);
+    color: #FF6B35; border-radius: 8px; padding: 7px 16px;
+    font-size: 12px; font-weight: 700; cursor: pointer; transition: all 0.15s;
   }
-  .refresh-btn:hover { background: rgba(248,120,6,0.25); }
+  .refresh-btn:hover { background: rgba(255,107,53,0.15); }
   .refresh-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .last-updated { font-size: 11px; color: #aaa; }
 
-  /* ── Container ──────────────────────────────────────────── */
-  .container { max-width: 1320px; margin: 0 auto; padding: 28px 24px; }
-
-  /* ── Section label ──────────────────────────────────────── */
-  .section-label {
-    font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
-    color: #f87806; font-weight: 700; margin-bottom: 16px; margin-top: 32px;
-    padding-bottom: 8px; border-bottom: 1px solid rgba(248,120,6,0.15);
-    display: flex; align-items: center; gap: 8px;
-  }
-  .section-label:first-child { margin-top: 0; }
-  .section-label::before { content: ''; width: 16px; height: 2px; background: #f87806; border-radius: 1px; }
-
-  /* ── KPI Cards ──────────────────────────────────────────── */
-  .kpi-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 8px; }
-  .kpi-card {
-    background: #0f1827; border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px; padding: 22px 20px;
-    position: relative; overflow: hidden; transition: border-color 0.2s;
-  }
-  .kpi-card::before {
-    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
-    border-radius: 16px 16px 0 0;
-  }
-  .kpi-card.k1::before { background: linear-gradient(90deg, #f87806, #e91e8c); }
-  .kpi-card.k2::before { background: linear-gradient(90deg, #7209b7, #4361ee); }
-  .kpi-card.k3::before { background: linear-gradient(90deg, #4cc9f0, #06d6a0); }
-  .kpi-card.k4::before { background: linear-gradient(90deg, #06d6a0, #4361ee); }
-  .kpi-card:hover { border-color: rgba(255,255,255,0.14); }
-  .kpi-icon { font-size: 24px; margin-bottom: 10px; opacity: 0.8; }
-  .kpi-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: rgba(255,255,255,0.4); font-weight: 600; }
-  .kpi-value { font-size: 36px; font-weight: 800; margin: 6px 0 2px; line-height: 1; color: #f1f5f9; letter-spacing: -1px; }
-  .kpi-sub   { font-size: 11px; color: rgba(255,255,255,0.3); margin-top: 4px; }
-  .kpi-glow  { position: absolute; bottom: -20px; right: -10px; width: 80px; height: 80px; border-radius: 50%; opacity: 0.06; }
-  .k1 .kpi-glow { background: #f87806; }
-  .k2 .kpi-glow { background: #7209b7; }
-  .k3 .kpi-glow { background: #4cc9f0; }
-  .k4 .kpi-glow { background: #06d6a0; }
-
-  /* ── GA4 KPI mini strip ─────────────────────────────────── */
-  .kpi-grid-sm { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; margin-bottom: 8px; }
-  .kpi-sm {
-    background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06);
-    border-radius: 12px; padding: 14px 16px;
-  }
-  .kpi-sm .kpi-label { font-size: 10px; color: rgba(255,255,255,0.35); }
-  .kpi-sm .kpi-value { font-size: 22px; font-weight: 700; color: #e2e8f0; margin: 4px 0 2px; }
-  .kpi-sm .kpi-sub   { font-size: 10px; color: rgba(255,255,255,0.25); }
-
-  /* ── Chart Cards ────────────────────────────────────────── */
-  .chart-card {
-    background: #0f1827; border: 1px solid rgba(255,255,255,0.07);
-    border-radius: 16px; padding: 24px; margin-bottom: 0;
-  }
-  .chart-card h2   { font-size: 14px; font-weight: 700; color: #f1f5f9; margin-bottom: 3px; }
-  .chart-card .sub { font-size: 11px; color: rgba(255,255,255,0.35); margin-bottom: 20px; }
-
-  .grid-2     { display: grid; grid-template-columns: 3fr 2fr; gap: 16px; margin-bottom: 16px; }
-  .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-  .grid-3     { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 16px; }
-
-  /* ── Demo banner ────────────────────────────────────────── */
+  /* ── Demo banner ── */
   .demo-banner {
-    background: rgba(248,120,6,0.08); border: 1px solid rgba(248,120,6,0.2);
-    border-radius: 10px; padding: 10px 16px; margin-bottom: 20px;
-    font-size: 12px; color: rgba(248,120,6,0.9);
+    background: rgba(255,107,53,0.07); border-bottom: 1px solid rgba(255,107,53,0.2);
+    padding: 10px 40px; font-size: 12px; color: #FF6B35;
     display: flex; align-items: center; gap: 8px;
   }
   .demo-banner.hidden { display: none; }
 
-  /* ── Registration breakdown strip ──────────────────────── */
-  .reg-type-strip {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 0;
-    border-radius: 10px; overflow: hidden; margin-top: 12px;
-  }
-  .rts-item { padding: 14px 16px; }
-  .rts-item.ind  { background: rgba(248,120,6,0.12); }
-  .rts-item.inst { background: rgba(114,9,183,0.12); }
-  .rts-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.6px; color: rgba(255,255,255,0.4); font-weight: 600; }
-  .rts-val   { font-size: 28px; font-weight: 800; line-height: 1; margin: 4px 0 2px; }
-  .rts-item.ind  .rts-val { color: #f87806; }
-  .rts-item.inst .rts-val { color: #b464e8; }
-  .rts-pct { font-size: 11px; color: rgba(255,255,255,0.35); }
+  /* ── Container ── */
+  .container { max-width: 1200px; margin: 0 auto; padding: 28px 24px; }
 
-  /* ── Day-by-day pill ────────────────────────────────────── */
-  .day-pills { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
-  .day-pill {
-    background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08);
-    border-radius: 20px; padding: 4px 12px; font-size: 11px; font-weight: 600;
-    color: rgba(255,255,255,0.45); cursor: pointer; transition: all 0.15s;
+  /* ── Section label ── */
+  .section-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 1.2px;
+    font-weight: 700; color: #888; margin-bottom: 14px; margin-top: 32px;
   }
-  .day-pill.active { background: rgba(248,120,6,0.15); border-color: rgba(248,120,6,0.3); color: #f87806; }
+  .section-label:first-child { margin-top: 0; }
 
-  /* ── Table ──────────────────────────────────────────────── */
+  /* ── KPI Cards ── */
+  .kpi-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .kpi-card {
+    background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px; padding: 22px 20px;
+    position: relative; overflow: hidden;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .kpi-card::before {
+    content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+    border-radius: 14px 14px 0 0;
+  }
+  .kpi-card.k1::before { background: linear-gradient(90deg, #FF6B35, #E91E63); }
+  .kpi-card.k2::before { background: linear-gradient(90deg, #E91E63, #9C27B0); }
+  .kpi-card.k3::before { background: linear-gradient(90deg, #9C27B0, #FF6B35); }
+  .kpi-label {
+    font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px;
+    color: #999; font-weight: 700; margin-bottom: 8px;
+  }
+  .kpi-value {
+    font-size: 40px; font-weight: 800; color: #1a1a2e;
+    line-height: 1; letter-spacing: -1.5px;
+  }
+  .kpi-sub { font-size: 11px; color: #bbb; margin-top: 6px; }
+
+  /* ── GA4 row ── */
+  .ga4-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  .ga4-card {
+    background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px; padding: 18px 20px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .ga4-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.8px; color: #999; font-weight: 700; }
+  .ga4-value { font-size: 30px; font-weight: 800; color: #1a1a2e; line-height: 1; letter-spacing: -1px; margin: 6px 0 4px; }
+  .ga4-sub   { font-size: 11px; color: #bbb; }
+
+  /* ── Chart Cards ── */
+  .chart-card {
+    background: #ffffff; border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px; padding: 22px 22px 18px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.05);
+  }
+  .chart-card h2   { font-size: 14px; font-weight: 700; color: #1a1a2e; margin-bottom: 2px; }
+  .chart-card .sub { font-size: 11px; color: #aaa; margin-bottom: 18px; }
+
+  .grid-equal { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .grid-full  { margin-bottom: 16px; }
+
+  /* ── Progress bars (educators table) ── */
+  .bar-row { margin-bottom: 10px; }
+  .bar-row:last-child { margin-bottom: 0; }
+  .bar-meta { display: flex; justify-content: space-between; margin-bottom: 4px; }
+  .bar-meta span:first-child { font-size: 12px; color: #444; }
+  .bar-meta span:last-child  { font-size: 12px; color: #999; font-weight: 600; }
+  .bar-track { height: 6px; background: #f0f0f0; border-radius: 3px; overflow: hidden; }
+  .bar-fill  { height: 100%; border-radius: 3px; transition: width 0.5s ease; }
+
+  /* ── Table ── */
   .table-wrap { overflow-x: auto; }
   table { width: 100%; border-collapse: collapse; font-size: 12px; }
   thead th {
-    text-align: left; padding: 10px 12px; font-size: 10px; text-transform: uppercase;
-    letter-spacing: 0.6px; color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.03);
-    font-weight: 600; border-bottom: 1px solid rgba(255,255,255,0.06);
+    text-align: left; padding: 9px 12px; font-size: 10px; text-transform: uppercase;
+    letter-spacing: 0.6px; color: #aaa; background: #fafafa; font-weight: 700;
+    border-bottom: 1px solid #eee;
   }
-  tbody tr { border-bottom: 1px solid rgba(255,255,255,0.04); transition: background 0.1s; }
-  tbody tr:hover { background: rgba(255,255,255,0.03); }
-  tbody td { padding: 9px 12px; color: rgba(255,255,255,0.7); vertical-align: middle; }
-  td.muted  { color: rgba(255,255,255,0.3); font-size: 11px; }
+  tbody tr { border-bottom: 1px solid #f5f5f5; transition: background 0.1s; }
+  tbody tr:hover { background: #fafafa; }
+  tbody td { padding: 9px 12px; color: #444; vertical-align: middle; }
+  td.muted { color: #bbb; font-size: 11px; }
   .badge {
-    display: inline-block; padding: 2px 8px; border-radius: 20px;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px;
+    display: inline-block; padding: 2px 9px; border-radius: 20px;
+    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px;
   }
-  .badge-ind  { background: rgba(248,120,6,0.18); color: #f87806; }
-  .badge-inst { background: rgba(114,9,183,0.18); color: #b464e8; }
+  .badge-ind  { background: rgba(255,107,53,0.1);  color: #FF6B35; }
+  .badge-inst { background: rgba(156,39,176,0.1); color: #9C27B0; }
 
-  /* ── Progress bars ──────────────────────────────────────── */
-  .bar-row { margin-bottom: 12px; }
-  .bar-row:last-child { margin-bottom: 0; }
-  .bar-label { display: flex; justify-content: space-between; margin-bottom: 5px; }
-  .bar-label span:first-child { font-size: 12px; color: rgba(255,255,255,0.65); }
-  .bar-label span:last-child  { font-size: 12px; color: rgba(255,255,255,0.4); font-weight: 600; }
-  .bar-track { height: 6px; background: rgba(255,255,255,0.07); border-radius: 3px; overflow: hidden; }
-  .bar-fill  { height: 100%; border-radius: 3px; transition: width 0.6s ease; }
-
-  /* ── Footer ─────────────────────────────────────────────── */
+  /* ── Footer ── */
   footer {
     text-align: center; padding: 24px;
-    font-size: 11px; color: rgba(255,255,255,0.2);
-    border-top: 1px solid rgba(255,255,255,0.05); margin-top: 16px;
+    font-size: 11px; color: #bbb;
+    border-top: 1px solid rgba(0,0,0,0.06); margin-top: 8px;
   }
-  footer strong { color: rgba(255,255,255,0.35); }
 
-  /* ── Loading shimmer ────────────────────────────────────── */
-  .shimmer {
-    background: linear-gradient(90deg, rgba(255,255,255,0.04) 25%, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0.04) 75%);
-    background-size: 200% 100%;
-    animation: shimmer 1.4s infinite;
-    border-radius: 6px; min-height: 36px;
-  }
-  @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-  /* ── Responsive ─────────────────────────────────────────── */
-  @media (max-width: 900px) {
-    header { padding: 16px 20px; }
-    .status-bar { padding: 8px 20px; }
+  /* ── Responsive ── */
+  @media (max-width: 860px) {
+    header { padding: 16px 20px; flex-wrap: wrap; gap: 12px; }
+    .demo-banner { padding: 10px 20px; }
     .container { padding: 20px 16px; }
-    .kpi-grid  { grid-template-columns: repeat(2,1fr); }
-    .kpi-grid-sm { grid-template-columns: repeat(2,1fr); }
-    .grid-2, .grid-equal, .grid-3 { grid-template-columns: 1fr; }
+    .kpi-grid, .ga4-grid { grid-template-columns: 1fr 1fr; }
+    .grid-equal { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 540px) {
+    .kpi-grid, .ga4-grid { grid-template-columns: 1fr; }
   }
 </style>
 </head>
 <body>
 
-<!-- ════════════════════════════════════════════════════════
-     HEADER
-═════════════════════════════════════════════════════════ -->
+<!-- ══ HEADER ══════════════════════════════════════════════ -->
 <header>
   <div class="brand">
     <div class="logo">ERIC</div>
     <div class="brand-text">
       <h1>Freelance Week &rsquo;26</h1>
-      <p>Live Engagement Dashboard &mdash; 8&ndash;12 June 2026</p>
+      <p>Analytics Dashboard &mdash; 8&ndash;12 June 2026</p>
     </div>
   </div>
   <div class="header-right">
-    <div class="status-pill">
-      <span class="status-dot"></span>
-      <span id="live-label">Live</span>
-    </div>
-    <div class="date-badge">
-      <strong id="header-date">Loading…</strong>
-      <span>Auto-refreshes every 5 min</span>
-    </div>
+    <span class="last-updated">Updated: <span id="last-updated-text">—</span></span>
+    <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Refresh</button>
+    <div class="live-badge"><span class="live-dot"></span> Live</div>
   </div>
 </header>
 
-<!-- ════════════════════════════════════════════════════════
-     STATUS BAR
-═════════════════════════════════════════════════════════ -->
-<div class="status-bar">
-  <span>Last updated: <span id="last-updated-text">—</span></span>
-  <button class="refresh-btn" id="refresh-btn" onclick="loadAll()">↻ Refresh now</button>
-  <span id="data-source-status" class="src-demo">● Demo data — paste your Web App URLs in CONFIG to go live</span>
+<!-- ══ DEMO BANNER ══════════════════════════════════════════ -->
+<div class="demo-banner" id="demo-banner">
+  ⚠ Showing placeholder data &mdash; paste your Web App URLs into <code>CONFIG</code> in the script block to connect live data.
 </div>
 
-<!-- ════════════════════════════════════════════════════════
-     MAIN CONTENT
-═════════════════════════════════════════════════════════ -->
+<!-- ══ MAIN ═════════════════════════════════════════════════ -->
 <div class="container">
 
-  <!-- Demo banner -->
-  <div class="demo-banner" id="demo-banner">
-    ⚠ Showing placeholder data. Configure <code>CONFIG.SHEETS_URL</code> and <code>CONFIG.GA4_URL</code> in the &lt;script&gt; block to connect live data.
-  </div>
-
-  <!-- ── REGISTRATIONS ──────────────────────────────────── -->
+  <!-- ── Registrations ─────────────────────────────────── -->
   <div class="section-label">Registrations</div>
 
   <div class="kpi-grid">
     <div class="kpi-card k1">
-      <div class="kpi-icon">🎟</div>
-      <div class="kpi-label">Total Registrations</div>
+      <div class="kpi-label">Total Sign-ups</div>
       <div class="kpi-value" id="kpi-total">—</div>
-      <div class="kpi-sub">Across all types &amp; days</div>
-      <div class="kpi-glow"></div>
+      <div class="kpi-sub">All registrant types</div>
     </div>
     <div class="kpi-card k2">
-      <div class="kpi-icon">👤</div>
-      <div class="kpi-label">Individual</div>
-      <div class="kpi-value" id="kpi-individual">—</div>
-      <div class="kpi-sub" id="kpi-individual-pct">% of total</div>
-      <div class="kpi-glow"></div>
+      <div class="kpi-label">Student Count (from educators)</div>
+      <div class="kpi-value" id="kpi-students">—</div>
+      <div class="kpi-sub">Students represented via institutions</div>
     </div>
     <div class="kpi-card k3">
-      <div class="kpi-icon">🏫</div>
-      <div class="kpi-label">School / College / University</div>
-      <div class="kpi-value" id="kpi-institution">—</div>
-      <div class="kpi-sub" id="kpi-institution-pct">% of total</div>
-      <div class="kpi-glow"></div>
-    </div>
-    <div class="kpi-card k4">
-      <div class="kpi-icon">📅</div>
-      <div class="kpi-label">Days With Registrations</div>
-      <div class="kpi-value" id="kpi-active-days">—</div>
-      <div class="kpi-sub">of 5 event days</div>
-      <div class="kpi-glow"></div>
+      <div class="kpi-label">Educators Signed Up</div>
+      <div class="kpi-value" id="kpi-educators">—</div>
+      <div class="kpi-sub">School / College / University staff</div>
     </div>
   </div>
 
-  <!-- ── Day by day + Type split ───────────────────────── -->
-  <div class="grid-2" style="margin-top:16px;">
+  <!-- ── Sign-ups per day + Type split ─────────────────── -->
+  <div class="section-label" style="margin-top:28px;">Sign-ups by Day &amp; Type</div>
+  <div class="grid-equal">
     <div class="chart-card">
-      <h2>Registrations per Day</h2>
-      <div class="sub">Monday–Friday, 8–12 June 2026</div>
+      <h2>Sign-ups per Day</h2>
+      <div class="sub">Mon–Fri, 8–12 June 2026</div>
       <canvas id="chart-days" height="220"></canvas>
     </div>
     <div class="chart-card">
-      <h2>Registrant Type</h2>
-      <div class="sub">Individual vs School / College / University</div>
-      <canvas id="chart-type" height="180"></canvas>
+      <h2>Individual vs Institution</h2>
+      <div class="sub">Registrant type breakdown</div>
+      <canvas id="chart-type" height="220"></canvas>
     </div>
   </div>
 
-  <!-- ── WEB ANALYTICS ─────────────────────────────────── -->
+  <!-- ── Web analytics ─────────────────────────────────── -->
   <div class="section-label">Web Analytics (GA4)</div>
 
-  <div class="kpi-grid-sm">
-    <div class="kpi-sm">
-      <div class="kpi-label">Page Views</div>
-      <div class="kpi-value" id="kpi-pageviews">—</div>
-      <div class="kpi-sub">Total page views</div>
+  <div class="ga4-grid" style="margin-bottom:16px;">
+    <div class="ga4-card">
+      <div class="ga4-label">Website Visits per Day (avg)</div>
+      <div class="ga4-value" id="kpi-visits">—</div>
+      <div class="ga4-sub">Average daily sessions</div>
     </div>
-    <div class="kpi-sm">
-      <div class="kpi-label">Unique Visitors</div>
-      <div class="kpi-value" id="kpi-users">—</div>
-      <div class="kpi-sub">Active users (GA4)</div>
+    <div class="ga4-card">
+      <div class="ga4-label">Total Page Views</div>
+      <div class="ga4-value" id="kpi-pageviews">—</div>
+      <div class="ga4-sub">Across the event week</div>
     </div>
-    <div class="kpi-sm">
-      <div class="kpi-label">Avg Session Duration</div>
-      <div class="kpi-value" id="kpi-duration">—</div>
-      <div class="kpi-sub">mins:secs</div>
-    </div>
-    <div class="kpi-sm">
-      <div class="kpi-label">Bounce Rate</div>
-      <div class="kpi-value" id="kpi-bounce">—</div>
-      <div class="kpi-sub">Single-page sessions</div>
+    <div class="ga4-card">
+      <div class="ga4-label">Avg Watch Time</div>
+      <div class="ga4-value" id="kpi-watchtime">—</div>
+      <div class="ga4-sub">Average video engagement time</div>
     </div>
   </div>
 
-  <!-- ── Sessions per day + video events ─────────────── -->
-  <div class="grid-equal" style="margin-top:16px;">
+  <!-- ── Sessions per day line + Most-viewed videos ──── -->
+  <div class="grid-equal">
     <div class="chart-card">
-      <h2>Sessions per Day</h2>
-      <div class="sub">GA4 — session starts by date</div>
+      <h2>Website Visits per Day</h2>
+      <div class="sub">GA4 sessions — daily breakdown</div>
       <canvas id="chart-sessions" height="220"></canvas>
     </div>
     <div class="chart-card">
-      <h2>Video Watch Events</h2>
-      <div class="sub">GA4 — video_start &amp; video_progress events</div>
-      <canvas id="chart-video" height="220"></canvas>
+      <h2>Most Viewed Videos</h2>
+      <div class="sub">GA4 video_start events by video title</div>
+      <canvas id="chart-videos" height="220"></canvas>
     </div>
   </div>
 
-  <!-- ── AUDIENCE INSIGHTS ─────────────────────────────── -->
-  <div class="section-label">Audience Insights</div>
-
-  <div class="grid-equal">
-    <div class="chart-card">
-      <h2>Career Stage</h2>
-      <div class="sub">Where registrants are on their freelance journey</div>
-      <canvas id="chart-career" height="240"></canvas>
-    </div>
-    <div class="chart-card">
-      <h2>Top Industries &amp; Disciplines</h2>
-      <div class="sub">From quiz / registration data</div>
-      <div id="industries-bars" style="margin-top:4px;"></div>
-    </div>
-  </div>
-
-  <!-- ── REGISTRATION LOG ───────────────────────────────── -->
-  <div class="section-label">Recent Registrations</div>
-
-  <div class="chart-card">
+  <!-- ── Recent sign-ups ────────────────────────────────── -->
+  <div class="section-label">Recent Sign-ups</div>
+  <div class="chart-card grid-full">
     <div class="table-wrap">
       <table>
         <thead>
@@ -377,14 +276,14 @@
             <th>#</th>
             <th>Name</th>
             <th>Type</th>
-            <th>Career Stage</th>
             <th>Institution / Role</th>
-            <th>Days Interested</th>
+            <th>Students</th>
+            <th>Days</th>
             <th>Date</th>
           </tr>
         </thead>
         <tbody id="reg-table-body">
-          <tr><td colspan="7" style="text-align:center;padding:24px;color:rgba(255,255,255,0.2);">Loading…</td></tr>
+          <tr><td colspan="7" style="text-align:center;padding:24px;color:#ccc;">Loading…</td></tr>
         </tbody>
       </table>
     </div>
@@ -393,140 +292,121 @@
 </div><!-- /container -->
 
 <footer>
-  <strong>ERIC — Freelance Week 2026</strong> &middot; Analytics Dashboard &middot;
+  ERIC &mdash; Freelance Week 2026 &middot; Analytics Dashboard &middot;
   Last refreshed: <span id="footer-updated">—</span>
 </footer>
 
-<!-- ════════════════════════════════════════════════════════
-     JAVASCRIPT
-═════════════════════════════════════════════════════════ -->
+<!-- ══ SCRIPT ════════════════════════════════════════════════ -->
 <script>
-/* ─────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
    CONFIG — paste your deployed Apps Script Web App URLs here
-───────────────────────────────────────────────────────── */
+──────────────────────────────────────────────────────────── */
 const CONFIG = {
-  SHEETS_URL: '',   // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
-  GA4_URL:    '',   // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
-  REFRESH_INTERVAL_MS: 5 * 60 * 1000,  // 5 minutes
+  SHEETS_URL: '',  // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
+  GA4_URL:    '',  // e.g. 'https://script.google.com/macros/s/YOUR_ID/exec'
+  REFRESH_INTERVAL_MS: 5 * 60 * 1000,
 };
 
-/* ─────────────────────────────────────────────────────────
-   DEMO DATA — shown when endpoints are not configured
-───────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   DEMO DATA
+──────────────────────────────────────────────────────────── */
 const DEMO = {
   sheets: {
     registrations: [
-      { date: '2026-06-08', name: 'Alex Morgan',    type: 'Individual',  careerStage: 'Ready to start',       institution: '',                    role: '',           daysInterested: 'Mon, Tue' },
-      { date: '2026-06-08', name: 'Jordan Shaw',    type: 'Individual',  careerStage: 'Just curious',         institution: '',                    role: '',           daysInterested: 'Mon' },
-      { date: '2026-06-08', name: 'Riley Patel',    type: 'Institution', careerStage: '',                     institution: 'Leeds Beckett Uni',   role: 'Lecturer',   daysInterested: 'Mon, Wed' },
-      { date: '2026-06-09', name: 'Sam Torres',     type: 'Individual',  careerStage: 'Already freelancing',  institution: '',                    role: '',           daysInterested: 'Tue, Thu' },
-      { date: '2026-06-09', name: 'Casey Lee',      type: 'Individual',  careerStage: 'Career changer',       institution: '',                    role: '',           daysInterested: 'Tue' },
-      { date: '2026-06-09', name: 'Morgan Davis',   type: 'Institution', careerStage: '',                     institution: 'Manchester College',  role: 'Head of Dept',daysInterested: 'Tue, Fri' },
-      { date: '2026-06-10', name: 'Taylor Kim',     type: 'Individual',  careerStage: 'Ready to start',       institution: '',                    role: '',           daysInterested: 'Wed' },
-      { date: '2026-06-10', name: 'Avery Brooks',   type: 'Individual',  careerStage: 'Just curious',         institution: '',                    role: '',           daysInterested: 'Wed, Thu' },
-      { date: '2026-06-10', name: 'Quinn Reeves',   type: 'Individual',  careerStage: 'Already freelancing',  institution: '',                    role: '',           daysInterested: 'Mon–Fri' },
-      { date: '2026-06-11', name: 'Devon Walsh',    type: 'Institution', careerStage: '',                     institution: 'Salford Uni',         role: 'Careers Advisor',daysInterested: 'Thu' },
-      { date: '2026-06-11', name: 'Emery Clark',    type: 'Individual',  careerStage: 'Career changer',       institution: '',                    role: '',           daysInterested: 'Thu, Fri' },
-      { date: '2026-06-12', name: 'Rowan James',    type: 'Individual',  careerStage: 'Ready to start',       institution: '',                    role: '',           daysInterested: 'Fri' },
-      { date: '2026-06-12', name: 'Blake Chen',     type: 'Institution', careerStage: '',                     institution: 'Leeds Arts Uni',      role: 'Tutor',      daysInterested: 'Fri' },
-      { date: '2026-06-12', name: 'Sage Miller',    type: 'Individual',  careerStage: 'Just curious',         institution: '',                    role: '',           daysInterested: 'Fri' },
-    ],
-    industries: [
-      { name: 'Design & Creative',      count: 41 },
-      { name: 'Technology & Digital',   count: 28 },
-      { name: 'Media & Journalism',     count: 22 },
-      { name: 'Marketing & PR',         count: 18 },
-      { name: 'Education & Training',   count: 15 },
-      { name: 'Music & Performance',    count: 11 },
-      { name: 'Film & Photography',     count: 9  },
-      { name: 'Writing & Publishing',   count: 8  },
+      { date:'2026-06-08', name:'Alex Morgan',    type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Mon, Tue' },
+      { date:'2026-06-08', name:'Jordan Shaw',    type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Mon' },
+      { date:'2026-06-08', name:'Riley Patel',    type:'Institution', institution:'Leeds Beckett Uni',  role:'Lecturer',         studentCount:120, daysInterested:'Mon, Wed' },
+      { date:'2026-06-09', name:'Sam Torres',     type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Tue, Thu' },
+      { date:'2026-06-09', name:'Casey Lee',      type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Tue' },
+      { date:'2026-06-09', name:'Morgan Davis',   type:'Institution', institution:'Manchester College', role:'Head of Dept',     studentCount:200, daysInterested:'Tue, Fri' },
+      { date:'2026-06-10', name:'Taylor Kim',     type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Wed' },
+      { date:'2026-06-10', name:'Avery Brooks',   type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Wed, Thu' },
+      { date:'2026-06-10', name:'Quinn Reeves',   type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Mon–Fri' },
+      { date:'2026-06-11', name:'Devon Walsh',    type:'Institution', institution:'Salford Uni',        role:'Careers Advisor',  studentCount:85,  daysInterested:'Thu' },
+      { date:'2026-06-11', name:'Emery Clark',    type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Thu, Fri' },
+      { date:'2026-06-12', name:'Rowan James',    type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Fri' },
+      { date:'2026-06-12', name:'Blake Chen',     type:'Institution', institution:'Leeds Arts Uni',     role:'Tutor',            studentCount:60,  daysInterested:'Fri' },
+      { date:'2026-06-12', name:'Sage Miller',    type:'Individual',  institution:'',                   role:'',                 studentCount:0,  daysInterested:'Fri' },
     ],
   },
   ga4: {
-    pageViews:     3_812,
-    users:         1_247,
-    avgDuration:   '2:34',
-    bounceRate:    '38%',
+    totalPageViews: 3812,
+    avgDailyVisits: 762,
+    avgWatchTime:   '3:41',
     sessionsPerDay: [
-      { date: 'Mon 8',  sessions: 420 },
-      { date: 'Tue 9',  sessions: 610 },
-      { date: 'Wed 10', sessions: 540 },
-      { date: 'Thu 11', sessions: 490 },
-      { date: 'Fri 12', sessions: 380 },
+      { date:'Mon 8',  sessions:420 },
+      { date:'Tue 9',  sessions:610 },
+      { date:'Wed 10', sessions:540 },
+      { date:'Thu 11', sessions:490 },
+      { date:'Fri 12', sessions:380 },
     ],
-    videoEvents: [
-      { label: 'Intro video start',    count: 892 },
-      { label: 'Intro video 50%',      count: 541 },
-      { label: 'Intro video complete', count: 304 },
-      { label: 'Panel clip start',     count: 216 },
-      { label: 'Panel clip 50%',       count: 140 },
+    topVideos: [
+      { title:'What is Freelancing?',          views:892 },
+      { title:'Getting Your First Client',     views:641 },
+      { title:'Rates & Pricing',               views:510 },
+      { title:'Freelancing While Studying',    views:390 },
+      { title:'Tax & Admin Basics',            views:270 },
     ],
   },
 };
 
-/* ─────────────────────────────────────────────────────────
-   CHART INSTANCES
-───────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   BRAND COLOURS
+──────────────────────────────────────────────────────────── */
+const ORANGE  = '#FF6B35';
+const PINK    = '#E91E63';
+const PURPLE  = '#9C27B0';
+const BLUE    = '#3F51B5';
+const TEAL    = '#009688';
+
+const PALETTE = [ORANGE, PINK, PURPLE, BLUE, TEAL,
+                 '#FF5722','#E91E8C','#7B1FA2','#283593','#00796B'];
+
+/* ────────────────────────────────────────────────────────────
+   CHART HELPERS
+──────────────────────────────────────────────────────────── */
 const charts = {};
+function destroyChart(id) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } }
 
-function destroyChart(id) {
-  if (charts[id]) { charts[id].destroy(); delete charts[id]; }
-}
-
-const CHART_DEFAULTS = {
-  responsive: true,
-  maintainAspectRatio: true,
-  plugins: { legend: { labels: { color: 'rgba(255,255,255,0.55)', font: { size: 11 } } } },
+const AXIS = {
+  grid:  { color:'rgba(0,0,0,0.05)' },
+  ticks: { color:'#aaa', font:{ size:11 } },
 };
+const LEGEND = { labels:{ color:'#555', font:{ size:11 }, padding:14 } };
 
-function axisStyle() {
-  return {
-    grid:  { color: 'rgba(255,255,255,0.05)' },
-    ticks: { color: 'rgba(255,255,255,0.4)', font: { size: 11 } },
-  };
-}
-
-/* ─────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
    RENDER CHARTS
-───────────────────────────────────────────────────────── */
-function renderDaysChart(registrations) {
-  const days = ['Mon 8', 'Tue 9', 'Wed 10', 'Thu 11', 'Fri 12'];
-  const dates = ['2026-06-08','2026-06-09','2026-06-10','2026-06-11','2026-06-12'];
-  const counts = dates.map(d => registrations.filter(r => r.date === d).length);
+──────────────────────────────────────────────────────────── */
+function renderDaysChart(regs) {
+  const dates  = ['2026-06-08','2026-06-09','2026-06-10','2026-06-11','2026-06-12'];
+  const labels = ['Mon 8','Tue 9','Wed 10','Thu 11','Fri 12'];
+  const counts = dates.map(d => regs.filter(r => r.date === d).length);
 
   destroyChart('days');
   charts['days'] = new Chart(document.getElementById('chart-days'), {
     type: 'bar',
     data: {
-      labels: days,
+      labels,
       datasets: [{
-        label: 'Registrations',
+        label: 'Sign-ups',
         data: counts,
-        backgroundColor: [
-          'rgba(248,120,6,0.75)',
-          'rgba(233,30,140,0.75)',
-          'rgba(114,9,183,0.75)',
-          'rgba(67,97,238,0.75)',
-          'rgba(76,201,240,0.75)',
-        ],
-        borderColor: [
-          '#f87806','#e91e8c','#7209b7','#4361ee','#4cc9f0'
-        ],
+        backgroundColor: PALETTE.slice(0, 5).map(c => c + 'cc'),
+        borderColor: PALETTE.slice(0, 5),
         borderWidth: 1,
         borderRadius: 6,
       }]
     },
     options: {
-      ...CHART_DEFAULTS,
-      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } },
-      scales: { x: axisStyle(), y: { ...axisStyle(), beginAtZero: true, ticks: { ...axisStyle().ticks, stepSize: 1 } } },
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { x: AXIS, y: { ...AXIS, beginAtZero: true, ticks: { ...AXIS.ticks, stepSize: 1 } } },
     }
   });
 }
 
-function renderTypeChart(registrations) {
-  const ind  = registrations.filter(r => r.type === 'Individual').length;
-  const inst = registrations.filter(r => r.type === 'Institution').length;
+function renderTypeChart(regs) {
+  const ind  = regs.filter(r => r.type === 'Individual').length;
+  const inst = regs.filter(r => r.type === 'Institution').length;
 
   destroyChart('type');
   charts['type'] = new Chart(document.getElementById('chart-type'), {
@@ -535,18 +415,16 @@ function renderTypeChart(registrations) {
       labels: ['Individual', 'Institution'],
       datasets: [{
         data: [ind, inst],
-        backgroundColor: ['rgba(248,120,6,0.8)', 'rgba(114,9,183,0.8)'],
-        borderColor: ['#f87806', '#7209b7'],
+        backgroundColor: [ORANGE + 'cc', PURPLE + 'cc'],
+        borderColor: [ORANGE, PURPLE],
         borderWidth: 2,
         hoverOffset: 6,
       }]
     },
     options: {
-      ...CHART_DEFAULTS,
-      cutout: '65%',
-      plugins: {
-        legend: { position: 'bottom', labels: { color: 'rgba(255,255,255,0.55)', padding: 16, font: { size: 11 } } },
-      },
+      responsive: true, maintainAspectRatio: true,
+      cutout: '62%',
+      plugins: { legend: { position:'bottom', labels:{ ...LEGEND.labels } } },
     }
   });
 }
@@ -560,130 +438,76 @@ function renderSessionsChart(sessionsPerDay) {
       datasets: [{
         label: 'Sessions',
         data: sessionsPerDay.map(d => d.sessions),
-        borderColor: '#4cc9f0',
-        backgroundColor: 'rgba(76,201,240,0.1)',
+        borderColor: ORANGE,
+        backgroundColor: ORANGE + '18',
         borderWidth: 2,
         fill: true,
         tension: 0.4,
-        pointBackgroundColor: '#4cc9f0',
+        pointBackgroundColor: ORANGE,
         pointRadius: 4,
       }]
     },
     options: {
-      ...CHART_DEFAULTS,
-      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } },
-      scales: { x: axisStyle(), y: { ...axisStyle(), beginAtZero: true } },
+      responsive: true, maintainAspectRatio: true,
+      plugins: { legend: { display: false } },
+      scales: { x: AXIS, y: { ...AXIS, beginAtZero: true } },
     }
   });
 }
 
-function renderVideoChart(videoEvents) {
-  destroyChart('video');
-  charts['video'] = new Chart(document.getElementById('chart-video'), {
+function renderVideosChart(topVideos) {
+  destroyChart('videos');
+  charts['videos'] = new Chart(document.getElementById('chart-videos'), {
     type: 'bar',
     data: {
-      labels: videoEvents.map(v => v.label),
+      labels: topVideos.map(v => v.title),
       datasets: [{
-        label: 'Events',
-        data: videoEvents.map(v => v.count),
-        backgroundColor: 'rgba(6,214,160,0.7)',
-        borderColor: '#06d6a0',
+        label: 'Views',
+        data: topVideos.map(v => v.views),
+        backgroundColor: PALETTE.slice(0, topVideos.length).map(c => c + 'cc'),
+        borderColor: PALETTE.slice(0, topVideos.length),
         borderWidth: 1,
         borderRadius: 4,
       }]
     },
     options: {
-      ...CHART_DEFAULTS,
+      responsive: true, maintainAspectRatio: true,
       indexAxis: 'y',
-      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } },
-      scales: { x: axisStyle(), y: { ...axisStyle(), grid: { display: false } } },
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ...AXIS, beginAtZero: true },
+        y: { ...AXIS, grid: { display: false }, ticks: { ...AXIS.ticks, font: { size: 10 } } },
+      },
     }
   });
 }
 
-function renderCareerChart(registrations) {
-  const stages = ['Just curious', 'Ready to start', 'Already freelancing', 'Career changer'];
-  const counts = stages.map(s => registrations.filter(r => r.careerStage === s).length);
-
-  destroyChart('career');
-  charts['career'] = new Chart(document.getElementById('chart-career'), {
-    type: 'bar',
-    data: {
-      labels: stages,
-      datasets: [{
-        label: 'Registrants',
-        data: counts,
-        backgroundColor: [
-          'rgba(76,201,240,0.7)',
-          'rgba(248,120,6,0.7)',
-          'rgba(6,214,160,0.7)',
-          'rgba(247,37,133,0.7)',
-        ],
-        borderColor: ['#4cc9f0','#f87806','#06d6a0','#f72585'],
-        borderWidth: 1,
-        borderRadius: 5,
-      }]
-    },
-    options: {
-      ...CHART_DEFAULTS,
-      indexAxis: 'y',
-      plugins: { ...CHART_DEFAULTS.plugins, legend: { display: false } },
-      scales: { x: { ...axisStyle(), beginAtZero: true }, y: { ...axisStyle(), grid: { display: false } } },
-    }
-  });
-}
-
-function renderIndustryBars(industries) {
-  const max = industries[0]?.count || 1;
-  const colors = ['#f87806','#e91e8c','#7209b7','#4361ee','#4cc9f0','#06d6a0','#f72585','#ffd60a'];
-  const container = document.getElementById('industries-bars');
-  container.innerHTML = industries.map((ind, i) => `
-    <div class="bar-row">
-      <div class="bar-label">
-        <span>${ind.name}</span>
-        <span>${ind.count}</span>
-      </div>
-      <div class="bar-track">
-        <div class="bar-fill" style="width:${(ind.count/max*100).toFixed(1)}%; background:${colors[i % colors.length]};"></div>
-      </div>
-    </div>
-  `).join('');
-}
-
-/* ─────────────────────────────────────────────────────────
-   POPULATE KPI CARDS
-───────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   POPULATE KPIs
+──────────────────────────────────────────────────────────── */
 function populateKPIs(regs, ga4) {
-  const total = regs.length;
-  const ind   = regs.filter(r => r.type === 'Individual').length;
-  const inst  = regs.filter(r => r.type === 'Institution').length;
-  const activeDays = new Set(regs.map(r => r.date)).size;
+  const total      = regs.length;
+  const educators  = regs.filter(r => r.type === 'Institution').length;
+  const students   = regs.reduce((sum, r) => sum + (parseInt(r.studentCount) || 0), 0);
 
-  document.getElementById('kpi-total').textContent       = total.toLocaleString();
-  document.getElementById('kpi-individual').textContent  = ind.toLocaleString();
-  document.getElementById('kpi-institution').textContent = inst.toLocaleString();
-  document.getElementById('kpi-active-days').textContent = activeDays;
+  document.getElementById('kpi-total').textContent     = total.toLocaleString();
+  document.getElementById('kpi-students').textContent  = students.toLocaleString();
+  document.getElementById('kpi-educators').textContent = educators.toLocaleString();
 
-  if (total > 0) {
-    document.getElementById('kpi-individual-pct').textContent  = `${Math.round(ind/total*100)}% of total`;
-    document.getElementById('kpi-institution-pct').textContent = `${Math.round(inst/total*100)}% of total`;
-  }
-
-  document.getElementById('kpi-pageviews').textContent = (ga4.pageViews || 0).toLocaleString();
-  document.getElementById('kpi-users').textContent     = (ga4.users || 0).toLocaleString();
-  document.getElementById('kpi-duration').textContent  = ga4.avgDuration || '—';
-  document.getElementById('kpi-bounce').textContent    = ga4.bounceRate || '—';
+  document.getElementById('kpi-pageviews').textContent = (ga4.totalPageViews || 0).toLocaleString();
+  document.getElementById('kpi-visits').textContent    = (ga4.avgDailyVisits  || 0).toLocaleString();
+  document.getElementById('kpi-watchtime').textContent = ga4.avgWatchTime || '—';
 }
 
-/* ─────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
    POPULATE TABLE
-───────────────────────────────────────────────────────── */
-function populateTable(registrations) {
+──────────────────────────────────────────────────────────── */
+function populateTable(regs) {
   const tbody = document.getElementById('reg-table-body');
-  const show  = registrations.slice().reverse().slice(0, 20); // latest 20
+  const show  = regs.slice().reverse().slice(0, 25);
 
   if (!show.length) {
-    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:rgba(255,255,255,0.2);">No registrations yet.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;padding:24px;color:#ccc;">No registrations yet.</td></tr>';
     return;
   }
 
@@ -692,115 +516,91 @@ function populateTable(registrations) {
     const badge  = isInst
       ? '<span class="badge badge-inst">Institution</span>'
       : '<span class="badge badge-ind">Individual</span>';
-    const instCell = isInst ? `${r.institution || '—'} <span class="muted">(${r.role || ''})</span>` : '—';
+    const instCell = isInst ? `${esc(r.institution || '—')} <span class="muted">${esc(r.role || '')}</span>` : '—';
+    const students = (isInst && r.studentCount) ? r.studentCount.toLocaleString() : '—';
     return `
       <tr>
-        <td class="muted">${registrations.length - i}</td>
-        <td>${escapeHtml(r.name || '—')}</td>
+        <td class="muted">${regs.length - i}</td>
+        <td>${esc(r.name || '—')}</td>
         <td>${badge}</td>
-        <td class="muted">${escapeHtml(r.careerStage || '—')}</td>
-        <td>${escapeHtml(instCell)}</td>
-        <td class="muted">${escapeHtml(r.daysInterested || '—')}</td>
+        <td>${instCell}</td>
+        <td class="muted">${students}</td>
+        <td class="muted">${esc(r.daysInterested || '—')}</td>
         <td class="muted">${r.date || '—'}</td>
-      </tr>
-    `;
+      </tr>`;
   }).join('');
 }
 
-function escapeHtml(str) {
-  return String(str)
-    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+                  .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 }
 
-/* ─────────────────────────────────────────────────────────
-   DATA FETCHING
-───────────────────────────────────────────────────────── */
-async function fetchSheets() {
-  if (!CONFIG.SHEETS_URL) return null;
-  const res = await fetch(CONFIG.SHEETS_URL);
-  if (!res.ok) throw new Error(`Sheets proxy returned ${res.status}`);
+/* ────────────────────────────────────────────────────────────
+   FETCH
+──────────────────────────────────────────────────────────── */
+async function fetchJSON(url) {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
   return res.json();
 }
 
-async function fetchGA4() {
-  if (!CONFIG.GA4_URL) return null;
-  const res = await fetch(CONFIG.GA4_URL);
-  if (!res.ok) throw new Error(`GA4 proxy returned ${res.status}`);
-  return res.json();
-}
-
-/* ─────────────────────────────────────────────────────────
-   MAIN LOAD FUNCTION
-───────────────────────────────────────────────────────── */
+/* ────────────────────────────────────────────────────────────
+   LOAD ALL
+──────────────────────────────────────────────────────────── */
 async function loadAll() {
   const btn = document.getElementById('refresh-btn');
   btn.disabled = true;
-  btn.textContent = '↻ Refreshing…';
+  btn.textContent = '↻ …';
 
-  let sheetsData = null;
-  let ga4Data    = null;
-  let isDemo     = false;
+  let sheetsData = null, ga4Data = null, isDemo = false;
 
   try {
-    [sheetsData, ga4Data] = await Promise.all([fetchSheets(), fetchGA4()]);
-  } catch (err) {
-    console.warn('Data fetch error:', err);
-  }
+    if (CONFIG.SHEETS_URL) sheetsData = await fetchJSON(CONFIG.SHEETS_URL);
+  } catch(e) { console.warn('Sheets fetch failed:', e); }
 
-  // Fall back to demo data for any missing source
+  try {
+    if (CONFIG.GA4_URL) ga4Data = await fetchJSON(CONFIG.GA4_URL);
+  } catch(e) { console.warn('GA4 fetch failed:', e); }
+
   if (!sheetsData) { sheetsData = DEMO.sheets; isDemo = true; }
   if (!ga4Data)    { ga4Data    = DEMO.ga4;    isDemo = true; }
 
-  // Status indicator
-  const statusEl = document.getElementById('data-source-status');
-  const bannerEl = document.getElementById('demo-banner');
-  if (isDemo) {
-    statusEl.className = 'src-demo';
-    statusEl.textContent = '● Demo data — paste your Web App URLs in CONFIG to go live';
-    bannerEl.classList.remove('hidden');
-  } else {
-    statusEl.className = 'src-ok';
-    statusEl.textContent = '● Live data connected';
-    bannerEl.classList.add('hidden');
+  // Banner
+  const banner = document.getElementById('demo-banner');
+  isDemo ? banner.classList.remove('hidden') : banner.classList.add('hidden');
+
+  // Compute avgDailyVisits if not provided by proxy
+  if (ga4Data.sessionsPerDay && !ga4Data.avgDailyVisits) {
+    const total = ga4Data.sessionsPerDay.reduce((s, d) => s + d.sessions, 0);
+    const days  = ga4Data.sessionsPerDay.filter(d => d.sessions > 0).length || 1;
+    ga4Data.avgDailyVisits = Math.round(total / days);
   }
 
-  // Render everything
   const regs = sheetsData.registrations || [];
   populateKPIs(regs, ga4Data);
   renderDaysChart(regs);
   renderTypeChart(regs);
   renderSessionsChart(ga4Data.sessionsPerDay || []);
-  renderVideoChart(ga4Data.videoEvents || []);
-  renderCareerChart(regs);
-  renderIndustryBars(sheetsData.industries || []);
+  renderVideosChart(ga4Data.topVideos || []);
   populateTable(regs);
 
-  // Timestamps
-  const now = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-  document.getElementById('last-updated-text').textContent = now;
-  document.getElementById('footer-updated').textContent    = new Date().toLocaleString('en-GB');
+  const now = new Date();
+  const ts  = now.toLocaleTimeString('en-GB', { hour:'2-digit', minute:'2-digit' });
+  document.getElementById('last-updated-text').textContent = ts;
+  document.getElementById('footer-updated').textContent    = now.toLocaleString('en-GB');
 
   btn.disabled = false;
-  btn.textContent = '↻ Refresh now';
+  btn.textContent = '↻ Refresh';
 }
 
-/* ─────────────────────────────────────────────────────────
+/* ────────────────────────────────────────────────────────────
    INIT
-───────────────────────────────────────────────────────── */
-function init() {
-  // Header date
-  document.getElementById('header-date').textContent =
-    new Date().toLocaleDateString('en-GB', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
-
-  // Initial load
+──────────────────────────────────────────────────────────── */
+document.addEventListener('DOMContentLoaded', () => {
   loadAll();
-
-  // Auto-refresh
   setInterval(loadAll, CONFIG.REFRESH_INTERVAL_MS);
-}
-
-document.addEventListener('DOMContentLoaded', init);
+});
 </script>
 
 </body>
