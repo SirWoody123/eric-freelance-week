@@ -572,6 +572,11 @@ async function loadAll() {
   const banner = document.getElementById('demo-banner');
   isDemo ? banner.classList.remove('hidden') : banner.classList.add('hidden');
 
+  // Normalise field names from proxy → dashboard expectations
+  if (ga4Data.pageViews      !== undefined && ga4Data.totalPageViews === undefined) ga4Data.totalPageViews = ga4Data.pageViews;
+  if (ga4Data.avgDuration    !== undefined && ga4Data.avgWatchTime   === undefined) ga4Data.avgWatchTime   = ga4Data.avgDuration;
+  if (ga4Data.videoEvents    !== undefined && ga4Data.topVideos      === undefined) ga4Data.topVideos      = ga4Data.videoEvents;
+
   // Compute avgDailyVisits if not provided by proxy
   if (ga4Data.sessionsPerDay && !ga4Data.avgDailyVisits) {
     const total = ga4Data.sessionsPerDay.reduce((s, d) => s + d.sessions, 0);
