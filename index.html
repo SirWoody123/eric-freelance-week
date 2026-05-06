@@ -485,11 +485,14 @@ function renderVideosChart(topVideos) {
 /* ────────────────────────────────────────────────────────────
    POPULATE KPIs
 ──────────────────────────────────────────────────────────── */
-function populateKPIs(regs, ga4) {
-  const total      = regs.length;
-  const individuals = regs.filter(r => r.type === 'Individual').length;
-  const students    = regs.reduce((sum, r) => sum + (parseInt(r.studentCount) || 0), 0);
-  const reach       = individuals + students;
+function populateKPIs(regs, ga4, summary) {
+  // Use pre-computed summary from proxy if available, otherwise calculate locally
+  const total       = summary ? summary.total       : regs.length;
+  const individuals = summary ? summary.individuals : regs.filter(r => r.type === 'Individual').length;
+  const reach       = summary ? summary.reach       : regs.reduce((s, r) => {
+    if (r.type === 'Institution') return s + (parseInt(r.studentCount) || 1);
+    return s + 1;
+  }, 0);
 
   document.getElementById('kpi-total').textContent       = total.toLocaleString();
   document.getElementById('kpi-individuals').textContent = individuals.toLocaleString();
@@ -578,8 +581,9 @@ async function loadAll() {
     ga4Data.avgDailyVisits = Math.round(total / days);
   }
 
-  const regs = sheetsData.registrations || [];
-  populateKPIs(regs, ga4Data);
+  const regs    = sheetsData.registrations || [];
+  const summary = sheetsData.summary || null;
+  populateKPIs(regs, ga4Data, summary);
   renderDaysChart(regs);
   renderTypeChart(regs);
   renderSessionsChart(ga4Data.sessionsPerDay || []);
