@@ -485,18 +485,16 @@ function renderVideosChart(topVideos) {
 /* ────────────────────────────────────────────────────────────
    POPULATE KPIs
 ──────────────────────────────────────────────────────────── */
-function populateKPIs(regs, ga4, summary) {
-  // Use pre-computed summary from proxy if available, otherwise calculate locally
-  const total       = summary ? summary.total       : regs.length;
-  const individuals = summary ? summary.individuals : regs.filter(r => r.type === 'Individual').length;
-  const reach       = summary ? summary.reach       : regs.reduce((s, r) => {
-    if (r.type === 'Institution') return s + (parseInt(r.studentCount) || 1);
-    return s + 1;
-  }, 0);
+function populateKPIs(regs, ga4, summary, visits) {
+  // Card 1 — total sign-ups from registrations sheet
+  const total = summary ? summary.total : regs.length;
+  document.getElementById('kpi-total').textContent = total.toLocaleString();
 
-  document.getElementById('kpi-total').textContent       = total.toLocaleString();
-  document.getElementById('kpi-individuals').textContent = individuals.toLocaleString();
-  document.getElementById('kpi-reach').textContent       = reach.toLocaleString();
+  // Cards 2 & 3 — from the visits sheet (gid=0)
+  const individualVisits       = visits ? visits.individualVisits       : 0;
+  const visitsWithEducatorData = visits ? visits.visitsWithEducatorData : 0;
+  document.getElementById('kpi-individuals').textContent = individualVisits.toLocaleString();
+  document.getElementById('kpi-reach').textContent       = visitsWithEducatorData.toLocaleString();
 
   document.getElementById('kpi-pageviews').textContent = (ga4.totalPageViews || 0).toLocaleString();
   document.getElementById('kpi-visits').textContent    = (ga4.avgDailyVisits  || 0).toLocaleString();
@@ -583,7 +581,8 @@ async function loadAll() {
 
   const regs    = sheetsData.registrations || [];
   const summary = sheetsData.summary || null;
-  populateKPIs(regs, ga4Data, summary);
+  const visits  = sheetsData.visits  || null;
+  populateKPIs(regs, ga4Data, summary, visits);
   renderDaysChart(regs);
   renderTypeChart(regs);
   renderSessionsChart(ga4Data.sessionsPerDay || []);

@@ -14,9 +14,10 @@
  */
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-var SPREADSHEET_ID = '1GbEAUVze_iw4SIOkFJiGFsPHuA6befAjyKLGVbp-G9Y';
-var SHEET_GID      = 2039356090;   // numeric gid from the URL
-var MAX_ROWS       = 1000;
+var SPREADSHEET_ID   = '1GbEAUVze_iw4SIOkFJiGFsPHuA6befAjyKLGVbp-G9Y';
+var SHEET_GID        = 2039356090;  // registrations tab
+var VISITS_SHEET_GID = 0;           // visits tab (gid=0)
+var MAX_ROWS         = 1000;
 
 // ── doGet ─────────────────────────────────────────────────────────────────────
 function doGet(e) {
@@ -123,10 +124,50 @@ function getData() {
       studentCount: studentCount,
       reach:        reach,
     },
+    visits: getVisitsSummary(ss),
     meta: {
       fetchedAt: new Date().toISOString(),
       sheetName: sheet.getName(),
     }
+  };
+}
+
+// ── Visits sheet (gid=0) ──────────────────────────────────────────────────────
+// Each row = 1 individual visit
+// Column E (index 4) = student count; if present use that for the reach total
+function getVisitsSummary(ss) {
+  var sheet = null;
+  var allSheets = ss.getSheets();
+  for (var i = 0; i < allSheets.length; i++) {
+    if (allSheets[i].getSheetId() === VISITS_SHEET_GID) {
+      sheet = allSheets[i];
+      break;
+    }
+  }
+  if (!sheet) return { individualVisits: 0, visitsWithEducatorData: 0 };
+
+  var lastRow = Math.min(sheet.getLastRow(), MAX_ROWS + 1);
+  if (lastRow < 2) return { individualVisits: 0, visitsWithEducatorData: 0 };
+
+  // Read only columns A–E (indices 0–4) — enough to get the student count
+  var rows = sheet.getRange(2, 1, lastRow - 1, 5).getValues();
+
+  var individualVisits       = 0;
+  var visitsWithEducatorData = 0;
+
+  rows.forEach(function(row) {
+    // Skip blank rows
+    if (!row.some(function(c) { return c !== ''; })) return;
+
+    individualVisits++;  // every row = 1
+
+    var studentCount = parseInt(row[4], 10) || 0;  // column E (index 4)
+    visitsWithEducatorData += studentCount > 0 ? studentCount : 1;
+  });
+
+  return {
+    individualVisits:       individualVisits,
+    visitsWithEducatorData: visitsWithEducatorData,
   };
 }
 
