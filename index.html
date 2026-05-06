@@ -205,14 +205,14 @@
       <div class="kpi-sub">All registrant types</div>
     </div>
     <div class="kpi-card k2">
-      <div class="kpi-label">Student Count (from educators)</div>
-      <div class="kpi-value" id="kpi-students">—</div>
-      <div class="kpi-sub">Students represented via institutions</div>
+      <div class="kpi-label">Total Visits by Individual Click</div>
+      <div class="kpi-value" id="kpi-individuals">—</div>
+      <div class="kpi-sub">People who registered themselves</div>
     </div>
     <div class="kpi-card k3">
-      <div class="kpi-label">Educators Signed Up</div>
-      <div class="kpi-value" id="kpi-educators">—</div>
-      <div class="kpi-sub">School / College / University staff</div>
+      <div class="kpi-label">Total Visits with Educator Data</div>
+      <div class="kpi-value" id="kpi-reach">—</div>
+      <div class="kpi-sub">Individuals + students via educators</div>
     </div>
   </div>
 
@@ -487,12 +487,13 @@ function renderVideosChart(topVideos) {
 ──────────────────────────────────────────────────────────── */
 function populateKPIs(regs, ga4) {
   const total      = regs.length;
-  const educators  = regs.filter(r => r.type === 'Institution').length;
-  const students   = regs.reduce((sum, r) => sum + (parseInt(r.studentCount) || 0), 0);
+  const individuals = regs.filter(r => r.type === 'Individual').length;
+  const students    = regs.reduce((sum, r) => sum + (parseInt(r.studentCount) || 0), 0);
+  const reach       = individuals + students;
 
-  document.getElementById('kpi-total').textContent     = total.toLocaleString();
-  document.getElementById('kpi-students').textContent  = students.toLocaleString();
-  document.getElementById('kpi-educators').textContent = educators.toLocaleString();
+  document.getElementById('kpi-total').textContent       = total.toLocaleString();
+  document.getElementById('kpi-individuals').textContent = individuals.toLocaleString();
+  document.getElementById('kpi-reach').textContent       = reach.toLocaleString();
 
   document.getElementById('kpi-pageviews').textContent = (ga4.totalPageViews || 0).toLocaleString();
   document.getElementById('kpi-visits').textContent    = (ga4.avgDailyVisits  || 0).toLocaleString();
