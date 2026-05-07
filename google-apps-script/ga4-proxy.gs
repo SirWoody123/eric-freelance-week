@@ -15,7 +15,7 @@
  */
 
 // ── CONFIG ────────────────────────────────────────────────────────────────────
-var GA4_PROPERTY_ID = '153293282';
+var GA4_PROPERTY_ID = '371339056';
 
 // Only count traffic to this page — filters out all other pages on meet-eric.com
 var PAGE_PATH = '/freelance-launch';
@@ -84,21 +84,15 @@ function getGA4Data() {
 
   var byDayReport = AnalyticsData.Properties.runReport(byDayRequest, propertyName);
 
-  // Day-label map
-  var dayLabels = {
-    '20260608': 'Mon 8',
-    '20260609': 'Tue 9',
-    '20260610': 'Wed 10',
-    '20260611': 'Thu 11',
-    '20260612': 'Fri 12',
-  };
-
   var sessionsPerDay = [];
   if (byDayReport.rows) {
     byDayReport.rows.forEach(function(row) {
       var rawDate = row.dimensionValues[0].value; // 'YYYYMMDD'
+      var y = rawDate.slice(0, 4);
+      var m = rawDate.slice(4, 6);
+      var d = rawDate.slice(6, 8);
       sessionsPerDay.push({
-        date:     dayLabels[rawDate] || rawDate,
+        date:     d + '/' + m + '/' + y,
         sessions: parseInt(row.metricValues[0].value, 10) || 0,
       });
     });
@@ -107,21 +101,13 @@ function getGA4Data() {
   // ── 3. Video events ─────────────────────────────────────────────────────────
   var videoRequest = {
     dateRanges: [{ startDate: DATE_START, endDate: DATE_END }],
-    dimensions: [{ name: 'eventName' }, { name: 'customEvent:video_title' }],
+    dimensions: [{ name: 'eventName' }],
     metrics:    [{ name: 'eventCount' }],
     dimensionFilter: {
       andGroup: {
         expressions: [
           PAGE_FILTER,
-          {
-            orGroup: {
-              expressions: [
-                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_start',    matchType: 'EXACT' } } },
-                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_progress', matchType: 'EXACT' } } },
-                { filter: { fieldName: 'eventName', stringFilter: { value: 'video_complete', matchType: 'EXACT' } } },
-              ]
-            }
-          }
+          { filter: { fieldName: 'eventName', stringFilter: { value: 'video_play', matchType: 'EXACT' } } }
         ]
       }
     },
@@ -133,11 +119,9 @@ function getGA4Data() {
   var videoEvents  = [];
   if (videoReport.rows) {
     videoReport.rows.forEach(function(row) {
-      var evtName   = row.dimensionValues[0].value;
-      var vidTitle  = row.dimensionValues[1].value || evtName;
-      var label     = vidTitle + ' (' + evtName.replace('_', ' ') + ')';
+      var evtName  = row.dimensionValues[0].value;
       videoEvents.push({
-        label: label,
+        label: evtName.replace(/_/g, ' '),
         count: parseInt(row.metricValues[0].value, 10) || 0,
       });
     });
